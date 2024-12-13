@@ -1,14 +1,17 @@
 import { DataProvider } from '@/components/DataContext';
 import Layout from '@/components/layout/layout';
 import '@/styles/globals.css';
+import { AuthProvider } from "../context/AuthContext";
 
 export default function App({ Component, pageProps, books, authors, genres }) {
   return (
-    <DataProvider books={books} authors={authors} genres={genres}>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
-    </DataProvider>
+    <AuthProvider>
+      <DataProvider books={books} authors={authors} genres={genres}>
+         <Layout>
+           <Component {...pageProps} />
+         </Layout>
+      </DataProvider>
+    </AuthProvider>
   );
 }
 
