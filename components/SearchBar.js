@@ -78,6 +78,27 @@ export default function SearchBar() {
     setShowRecentSearches(false); // Hide the recent searches dropdown
   };
 
+  const handleDeleteHistory = async (term) => {
+    if (!user) return;
+
+    try {
+      const res = await fetch('/api/user/history', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, searchTerm: term }),
+      });
+
+      if (res.ok) {
+        const updatedHistory = await res.json();
+        setRecentSearches(updatedHistory.history); // Update the search history in the UI
+      } else {
+        console.error('Failed to delete search term:', res.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting search term:', error);
+    }
+  };
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -112,10 +133,15 @@ export default function SearchBar() {
           {recentSearches.map((term, index) => (
             <li
               key={index}
-              className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => handleHistoryClick(term)}
+              className="p-2 cursor-pointer hover:bg-gray-200 flex justify-between items-center"
             >
-              {term}
+              <span onClick={() => handleHistoryClick(term)}>{term}</span>
+              <button
+                onClick={() => handleDeleteHistory(term)}
+                className="text-red-500 hover:text-red-700 ml-4"
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>
@@ -160,10 +186,20 @@ export default function SearchBar() {
           {recentSearches.map((term, index) => (
             <li
               key={index}
-              className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => handleHistoryClick(term)}
+              className="p-2 flex justify-between items-center hover:bg-gray-200"
             >
-              {term}
+              <span
+                className="cursor-pointer"
+                onClick={() => handleHistoryClick(term)}
+              >
+                {term}
+              </span>
+              <button
+                className="text-red-500 hover:text-red-700"
+                onClick={() => handleDeleteHistory(term)}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>
