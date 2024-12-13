@@ -10,33 +10,36 @@ export default function SearchBar() {
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [genres, setGenres] = useState([]);
-  const { user } = useAuth();
+  const { user } = useAuth(); // Get the logged-in user from AuthContext
   const router = useRouter();
 
+  // Fetch the logged-in user's search history on component mount or when user changes
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return; // Only fetch recent searches if user is logged in
+    const fetchSearchHistory = async () => {
+      if (!user) return;
 
       try {
-        const historyRes = await fetch(`/api/user/history?userId=${user._id}`);
+        const historyRes = await fetch(`/api/user/history?userId=${user.id}`);
         if (historyRes.ok) {
           const historyData = await historyRes.json();
           setRecentSearches(historyData.history || []);
         } else {
-          console.error('Failed to fetch search history:', historyRes.status);
+          console.error('Failed to fetch search history:', historyRes.statusText);
         }
       } catch (error) {
         console.error('Error fetching search history:', error);
       }
     };
 
-    fetchData();
+    fetchSearchHistory();
   }, [user]);
 
+  // Handle search logic
   const handleSearch = async () => {
     if (!searchTerm.trim()) return; // Prevent empty searches
 
     try {
+      // Perform the search query
       const res = await fetch(`/api/search?searchTerm=${encodeURIComponent(searchTerm)}`);
       const data = await res.json();
 
@@ -44,22 +47,42 @@ export default function SearchBar() {
       setAuthors(data.authors);
       setGenres(data.genres);
 
+      // If no results found, alert the user
       if (data.books.length === 0 && data.authors.length === 0 && data.genres.length === 0) {
         alert('No matching results found.');
+      } else {
+        // Save search term to user's history if logged in
+        if (user) {
+          try {
+            const historyRes = await fetch('/api/user/history', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.id, searchTerm }),
+            });
+
+            if (!historyRes.ok) {
+              console.error('Failed to save search term:', historyRes.statusText);
+            } else {
+              const updatedHistory = await historyRes.json();
+              setRecentSearches(updatedHistory.history); // Update UI with the new history
+            }
+          } catch (error) {
+            console.error('Error saving search term:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error searching:', error);
     }
 
-    // Clear search term and hide recent searches
-    setSearchTerm('');
-    setShowRecentSearches(false);
+    setSearchTerm(''); // Clear the input field
+    setShowRecentSearches(false); // Hide the recent searches dropdown
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setShowRecentSearches(value.length > 0);
+    setShowRecentSearches(value.length > 0); // Show recent searches if input is not empty
   };
 
   return (
@@ -78,6 +101,7 @@ export default function SearchBar() {
         Search
       </button>
 
+      {/* Display recent searches dropdown */}
       {showRecentSearches && recentSearches.length > 0 && (
         <ul className="absolute bg-white border rounded w-full mt-1 z-10">
           {recentSearches.map((term, index) => (

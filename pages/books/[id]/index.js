@@ -2,8 +2,10 @@ import DarkModeToggle from '../../../components/DarkModeToggle';
 import BookDetails from '../../../components/BookDetails';
 import { useRouter } from 'next/router';
 import ProtectedRoute from '../../../components/ProtectedRoute';
-export default function BookPage({ book}) {
+
+export default function BookPage({ book }) {
   const router = useRouter();
+
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
@@ -11,8 +13,8 @@ export default function BookPage({ book}) {
   return (
     <ProtectedRoute>
       <div className="container mx-auto p-4">
-       <BookDetails book={book} />
-       <DarkModeToggle />
+        <BookDetails book={book} />
+        <DarkModeToggle />
       </div>
     </ProtectedRoute>
   );
@@ -24,36 +26,42 @@ export async function getStaticProps({ params }) {
     const bookData = await res.json();
 
     if (!bookData || !bookData.book) {
-      return { notFound: true }; // Handle case where book is not found
+      return { notFound: true };
     }
 
     return {
       props: {
         book: bookData.book,
       },
-      revalidate: 86400, // Revalidate every 24 hours
+      revalidate: 86400,
     };
   } catch (error) {
     console.error('Error fetching book details:', error);
-    return { notFound: true }; // Return a 404 for errors
+    return { notFound: true };
   }
 }
 
-
 export async function getStaticPaths() {
-  const res = await fetch('http://localhost:3000/api/allbooks');
-  const data = await res.json();
+  try {
+    const res = await fetch('http://localhost:3000/api/allbooks');
+    const data = await res.json();
 
-  // Use "id" field instead of "_id"
-  const books = data.books || [];
-  const paths = books.map((book) => ({
-    params: { id: book.id.toString() }, // Use "id" from your dataset
-  }));
+    // Ensure `data` is an array before using `.map`
+    const books = Array.isArray(data) ? data : data.books || [];
 
-  return {
-    paths,
-    fallback: true, // Enable fallback for ISR
-  };
+    const paths = books.map((book) => ({
+      params: { id: book.id.toString() },
+    }));
+
+    return {
+      paths,
+      fallback: true,
+    };
+  } catch (error) {
+    console.error('Error fetching paths:', error);
+    return {
+      paths: [],
+      fallback: true, // Fallback mode for errors
+    };
+  }
 }
-
-

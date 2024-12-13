@@ -9,15 +9,15 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push('/login'); // Redirect to login if not authenticated
     }
   }, [user, router]);
 
   if (!user) {
-    return null; // or a loading spinner
+    return null; // Render nothing or a loading spinner until redirect
   }
 
-  return children;
+  return children; // Render protected content for authenticated users
 };
 
 export default ProtectedRoute;
