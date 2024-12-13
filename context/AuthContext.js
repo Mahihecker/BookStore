@@ -1,4 +1,3 @@
-// context/AuthContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import jwt from 'jsonwebtoken';
@@ -13,7 +12,12 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       const decoded = jwt.decode(token);
-      setUser({ id: decoded.id, email: decoded.email });
+      const isTokenExpired = decoded.exp * 1000 < Date.now();
+      if (!isTokenExpired) {
+        setUser({ id: decoded.id, email: decoded.email });
+      } else {
+        localStorage.removeItem('token');
+      }
     }
   }, []);
 
@@ -30,9 +34,32 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = await response.json();
       setUser(user);
       localStorage.setItem('token', token);
-      router.push('/');
+      return true;
     } catch (error) {
       console.error('Login error:', error.message);
+      return false;
+    }
+  };
+
+  const signup = async (username, email, password) => {
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error('Signup failed:', data.message);
+        return false;
+      }
+
+      console.log('Signup successful:', data.message);
+      return true;
+    } catch (error) {
+      console.error('Signup error:', error.message);
+      return false;
     }
   };
 
@@ -43,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

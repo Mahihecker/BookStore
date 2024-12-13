@@ -1,15 +1,14 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const bookSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Author', required: true },
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
-  genreId: { type: mongoose.Schema.Types.ObjectId, ref: 'Genre', required: true },
+  authorId: { type: String, required: true }, // Matches `id` in authors collection
+  description: { type: String },
+  price: { type: Number },
+  genreId: { type: String },
   rating: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },
-  coverImage: { type: String },
-  publishDate: { type: Date }
+  publishDate: { type: Date },
 });
 
-export default mongoose.models.Book || mongoose.model('Book', bookSchema);
+export default mongoose.models.Book || mongoose.model("Book", bookSchema);

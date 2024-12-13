@@ -5,9 +5,10 @@ export default function AuthorList({ authors }) {
   return (
     <ul className={styles.authorList}>
       {authors.map((author) => (
-        <li key={author.authorId} className={styles.authorItem}>
-          <Link href={`/Authors/${author.authorId}`}>
-             {`Author ID: ${author.authorId}`}
+        <li key={author.id} className={styles.authorItem}>
+          {/* Ensure proper routing to the author's details page */}
+          <Link href={`/Authors/${author.id}`}>
+            {author.name}
           </Link>
         </li>
       ))}

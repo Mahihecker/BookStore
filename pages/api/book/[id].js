@@ -8,8 +8,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Find the book by ID in the MongoDB collection
-      const book = await Book.findById(id);
+      // Find the book by the "id" field in the MongoDB collection
+      const book = await Book.findOne({ id }) // Use "id" instead of "_id"
+        .populate('authorId', 'name') // Populate the author field with its name
+        .populate('genreId', 'name'); // Populate the genre field with its name
 
       if (!book) {
         return res.status(404).json({ message: 'Book not found' });
@@ -17,6 +19,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ book });
     } catch (error) {
+      console.error('Error fetching book details:', error);
       return res.status(500).json({ message: 'Failed to fetch book details', error });
     }
   } else {

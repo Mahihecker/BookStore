@@ -18,32 +18,46 @@ export default function AuthorPage({ author }) {
 }
 
 export async function getStaticProps({ params }) {
-  const res = await fetch(`http://localhost:3000/api/author/${params.id}`);
-  const authorData = await res.json();
+  try {
+    // Fetch the author details by ID
+    const res = await fetch(`http://localhost:3000/api/author/${params.id}`);
+    const authorData = await res.json();
 
-  if (!authorData || !authorData.author) {
+    if (!authorData || !authorData.author) {
+      return { notFound: true };
+    }
+
+    return {
+      props: {
+        author: authorData.author,
+      },
+      revalidate: 86400, // Revalidate every 24 hours
+    };
+  } catch (error) {
+    console.error("Error fetching author details:", error);
     return { notFound: true };
   }
-
-  return {
-    props: {
-      author: authorData.author,
-    },
-    revalidate: 86400,
-  };
 }
 
-
 export async function getStaticPaths() {
-  const res = await fetch("http://localhost:3000/api/allauthor");
-  const data = await res.json();
+  try {
+    // Fetch all authors for static path generation
+    const res = await fetch("http://localhost:3000/api/allauthor");
+    const authors = await res.json();
 
-  const paths = data.bookAuthorIds.map((entry) => ({
-    params: { id: entry.authorId.toString() }, 
-  }));
+    const paths = authors.map((author) => ({
+      params: { id: author.id.toString() }, // Use `id` from MongoDB `authors` collection
+    }));
 
-  return {
-    paths,
-    fallback: true,
-  };
+    return {
+      paths,
+      fallback: true, // Enable fallback for ISR
+    };
+  } catch (error) {
+    console.error("Error fetching paths:", error);
+    return {
+      paths: [],
+      fallback: true,
+    };
+  }
 }

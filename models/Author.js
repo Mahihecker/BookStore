@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const authorSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  biography: { type: String, required: true },
-  photo: { type: String },
+  biography: { type: String },
   birthDate: { type: Date },
-  deathDate: { type: Date }
+  deathDate: { type: Date },
 });
 
-export default mongoose.models.Author || mongoose.model('Author', authorSchema);
+export default mongoose.models.Author || mongoose.model("Author", authorSchema);

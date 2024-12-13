@@ -8,7 +8,8 @@ export default function BookDetails({ book }) {
       <p className={styles.description}>{book.description}</p>
       <p className={styles.price}>Price: ${book.price}</p>
       <p className={styles.rating}>Rating: {book.rating}</p>
-      <Link href={`/books/${book.id}/author/${book.authorId}`} className={styles.authorLink}>
+      {/* Use book._id and book.authorId */}
+      <Link href={`/books/${book._id}/author/${book.authorId}`} className={styles.authorLink}>
         About the Author
       </Link>
     </div>

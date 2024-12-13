@@ -1,25 +1,32 @@
-// pages/api/authors/[id].js
-import connectToDatabase from '../../../lib/db';
-import Author from '../../../models/Author';
-import Book from '../../../models/Book';
+import connectToDatabase from "../../../lib/db";
+import Author from "../../../models/Author";
+import Book from "../../../models/Book";
 
 export default async function handler(req, res) {
   const { id } = req.query;
+
   await connectToDatabase();
 
-  if (req.method === 'GET') {
+  if (req.method === "GET") {
     try {
-      const author = await Author.findById(id);
+      // Find the author by `id`
+      const author = await Author.findOne({ id });
       if (!author) {
-        return res.status(404).json({ message: 'Author not found' });
+        return res.status(404).json({ message: "Author not found" });
       }
 
+      // Find all books by this author
       const booksByAuthor = await Book.find({ authorId: id });
-      res.status(200).json({ ...author.toObject(), books: booksByAuthor });
+
+      return res.status(200).json({
+        author,
+        books: booksByAuthor,
+      });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch author details', error });
+      console.error("Error fetching author details:", error);
+      return res.status(500).json({ message: "Failed to fetch author details", error });
     }
   } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    res.status(405).json({ message: "Method not allowed" });
   }
 }

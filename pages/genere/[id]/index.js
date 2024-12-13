@@ -18,21 +18,38 @@ export default function GenreBooks({ genre, books }) {
 }
 
 export async function getServerSideProps({ params }) {
-  const resGenre = await fetch("http://localhost:3000/api/genres");
-  const genresData = await resGenre.json();
-  const genre = genresData.genre.find((g) => g.id === params.id);
+  try {
+    const resGenre = await fetch(`http://localhost:3000/api/genres`);
+    const genresData = await resGenre.json();
 
-  if (!genre) {
+    const genre = genresData.genre.find((g) => g.id === params.id); // Match the `id` field
+    if (!genre) {
+      console.error("Genre not found for ID:", params.id);
+      return { notFound: true };
+    }
+
+    const resBooks = await fetch(`http://localhost:3000/api/genre/${params.id}`);
+    const booksData = await resBooks.json();
+
+    if (!booksData.books || booksData.books.length === 0) {
+      console.log("No books found for this genre.");
+      return {
+        props: {
+          genre,
+          books: [],
+        },
+      };
+    }
+
+    return {
+      props: {
+        genre,
+        books: booksData.books,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching genre or books:", error);
     return { notFound: true };
   }
-
-  const resBooks = await fetch(`http://localhost:3000/api/genre/${params.id}`);
-  const booksData = await resBooks.json();
-
-  return {
-    props: {
-      genre,
-      books: booksData.books,
-    },
-  };
 }
+

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import FeaturedBooks from '../../components/FeaturedBooks';
 import DarkModeToggle from '../../components/DarkModeToggle';
@@ -8,21 +7,23 @@ export default function BooksListPage({ initialBooks, genres }) {
   const [selectedGenre, setSelectedGenre] = useState('');
 
   const handleGenreChange = async (e) => {
-    const genreId = e.target.value;
-    setSelectedGenre(genreId);
-
+    const genreId = e.target.value; // Get selected genre ID
+    console.log("Selected Genre ID:", genreId);
+  
     if (!genreId) {
-      setFilteredBooks(initialBooks);
+      setFilteredBooks(initialBooks); // Reset to all books
       return;
     }
-
+  
     try {
       const res = await fetch(`/api/genre/${genreId}`);
       const data = await res.json();
-
+  
       if (data && data.books) {
+        console.log("Filtered Books:", data.books);
         setFilteredBooks(data.books);
       } else {
+        console.log("No books found for the selected genre.");
         setFilteredBooks([]);
       }
     } catch (error) {
@@ -30,7 +31,7 @@ export default function BooksListPage({ initialBooks, genres }) {
       setFilteredBooks([]);
     }
   };
-
+  
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">All Books</h1>
@@ -44,7 +45,7 @@ export default function BooksListPage({ initialBooks, genres }) {
         >
           <option value="">All</option>
           {genres.map((genre) => (
-            <option key={genre.id} value={genre.id}>
+            <option key={genre.id} value={genre.id}> {/* Use `id` */}
               {genre.name}
             </option>
           ))}
@@ -65,7 +66,7 @@ export async function getStaticProps() {
     const dataGenres = await resGenres.json();
 
     if (!dataBooks || !dataBooks.books || !dataGenres || !dataGenres.genre) {
-      return { notFound: true };
+      throw new Error('Invalid API response');
     }
 
     return {
@@ -73,10 +74,10 @@ export async function getStaticProps() {
         initialBooks: dataBooks.books,
         genres: dataGenres.genre,
       },
-      revalidate: 86400,
+      revalidate: 86400, // Revalidate every 24 hours
     };
   } catch (error) {
-    console.error("Failed to fetch books or genres data:", error);
-    return { notFound: true };
+    console.error('Error fetching books or genres:', error);
+    return { props: { initialBooks: [], genres: [] } };
   }
 }

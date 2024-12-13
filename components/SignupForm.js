@@ -2,31 +2,35 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link'; // Importing Link
-import styles from '../styles/LoginForm.module.css';
+import styles from '../styles/LoginForm.module.css'; // Reusing the same CSS for consistent design
 
-export default function LoginForm() {
+export default function SignupForm() {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState(null);
-  const { login } = useAuth();
+  const { signup } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setNotification(null);
 
-    const success = await login(email, password);
+    const success = await signup(username, email, password);
     if (success) {
-      router.push('/');
+      setNotification({ type: 'success', message: 'Account created successfully!' });
+      setTimeout(() => {
+        router.push('/login'); // Redirect to login page after successful signup
+      }, 2000);
     } else {
-      setNotification({ type: 'error', message: 'Invalid email or password!' });
+      setNotification({ type: 'error', message: 'Signup failed!' });
     }
   };
 
   return (
     <div className={styles.container}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        <h2 className={styles.title}>Login</h2>
+        <h2 className={styles.title}>Sign Up</h2>
         {notification && (
           <div
             className={`${styles.notification} ${
@@ -36,6 +40,15 @@ export default function LoginForm() {
             {notification.message}
           </div>
         )}
+        <label className={styles.label}>Username:</label>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className={styles.input}
+          placeholder="Enter your username"
+          required
+        />
         <label className={styles.label}>Email:</label>
         <input
           type="email"
@@ -55,12 +68,12 @@ export default function LoginForm() {
           required
         />
         <button type="submit" className={styles.button}>
-          Login
+          Sign Up
         </button>
         <p className={styles.linkText}>
-          Don't have an account?{' '}
-          <Link href="/signup" className={styles.link}>
-            Sign Up
+          Already have an account?{' '}
+          <Link href="/login" className={styles.link}>
+            Login
           </Link>
         </p>
       </form>

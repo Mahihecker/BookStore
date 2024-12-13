@@ -13,32 +13,41 @@ export default function BookPage({ book}) {
       <div className="container mx-auto p-4">
        <BookDetails book={book} />
        <DarkModeToggle />
-     </div>
+      </div>
     </ProtectedRoute>
   );
 }
 
 export async function getStaticProps({ params }) {
-  const res = await fetch(`http://localhost:3000/api/book/${params.id}`);
-  const bookData = await res.json();
+  try {
+    const res = await fetch(`http://localhost:3000/api/book/${params.id}`);
+    const bookData = await res.json();
 
-  if (!bookData || !bookData.book) {
-    return { notFound: true };
+    if (!bookData || !bookData.book) {
+      return { notFound: true }; // Handle case where book is not found
+    }
+
+    return {
+      props: {
+        book: bookData.book,
+      },
+      revalidate: 86400, // Revalidate every 24 hours
+    };
+  } catch (error) {
+    console.error('Error fetching book details:', error);
+    return { notFound: true }; // Return a 404 for errors
   }
-  return {
-    props: {
-      book: bookData.book,
-    },
-    revalidate: 86400,
-  };
 }
+
 
 export async function getStaticPaths() {
   const res = await fetch('http://localhost:3000/api/allbooks');
   const data = await res.json();
-  const books = data.featuredBooks || data.books || [];
+
+  // Use "id" field instead of "_id"
+  const books = data.books || [];
   const paths = books.map((book) => ({
-    params: { id: book.id.toString() },
+    params: { id: book.id.toString() }, // Use "id" from your dataset
   }));
 
   return {
@@ -46,3 +55,5 @@ export async function getStaticPaths() {
     fallback: true, // Enable fallback for ISR
   };
 }
+
+
