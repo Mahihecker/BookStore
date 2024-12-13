@@ -16,13 +16,13 @@ export default function SearchBar() {
     const fetchData = async () => {
       try {
         const [booksRes, authorsRes, genresRes] = await Promise.all([
-          fetch('/api/books'),
-          fetch('/api/authors'),
-          fetch('/api/genres'),
+          fetch('/api/book'),
+          fetch('/api/author'),
+          fetch('/api/genre'),
         ]);
 
         if (!booksRes.ok || !authorsRes.ok || !genresRes.ok) {
-          console.error('Error in fetching data:', {
+          console.error('Error fetching data:', {
             booksStatus: booksRes.status,
             authorsStatus: authorsRes.status,
             genresStatus: genresRes.status,
@@ -41,7 +41,7 @@ export default function SearchBar() {
         setGenres(genresData);
 
         if (user) {
-          const historyRes = await fetch(`/api/user/history?userId=${user.id}`);
+          const historyRes = await fetch(`/api/user/history?userId=${user._id}`);
           if (historyRes.ok) {
             const historyData = await historyRes.json();
             setRecentSearches(historyData.history || []);
@@ -57,40 +57,47 @@ export default function SearchBar() {
     fetchData();
   }, [user]);
 
-  const handleSearch = async (term = searchTerm) => {
-    if (!term) return;
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) return; // Prevent empty searches
 
-    const lowerCaseTerm = term.toLowerCase();
+    const lowerCaseTerm = searchTerm.toLowerCase();
 
-    const foundBook = books.find((book) => book.title.toLowerCase() === lowerCaseTerm);
-    const foundAuthor = authors.find((author) => author.name.toLowerCase() === lowerCaseTerm);
-    const foundGenre = genres.find((genre) => genre.name.toLowerCase() === lowerCaseTerm);
+    // Find matches (case insensitive)
+    const foundBook = books.find((book) => book.title?.toLowerCase() === lowerCaseTerm);
+    const foundAuthor = authors.find((author) => author.name?.toLowerCase() === lowerCaseTerm);
+    const foundGenre = genres.find((genre) => genre.name?.toLowerCase() === lowerCaseTerm);
 
-    if (user) {
-      try {
-        const res = await fetch('/api/user/history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, searchTerm: term }),
-        });
-        if (!res.ok) {
-          console.error('Failed to save search history:', res.status);
+    if (foundBook || foundAuthor || foundGenre) {
+      if (user) {
+        try {
+          const res = await fetch('/api/user/history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user._id, searchTerm }),
+          });
+          if (!res.ok) {
+            console.error('Failed to save search history:', res.status);
+          } else {
+            setRecentSearches((prev) => [searchTerm, ...prev].slice(0, 10)); // Update local state
+          }
+        } catch (error) {
+          console.error('Error saving search history:', error);
         }
-      } catch (error) {
-        console.error('Error saving search history:', error);
       }
-    }
 
-    if (foundBook) {
-      router.push(`/books/${foundBook.id}`);
-    } else if (foundAuthor) {
-      router.push(`/authors/${foundAuthor.id}`);
-    } else if (foundGenre) {
-      router.push(`/genres/${foundGenre.id}`);
+      // Navigate to the appropriate page
+      if (foundBook) {
+        router.push(`/books/${foundBook._id}`);
+      } else if (foundAuthor) {
+        router.push(`/Authors/${foundAuthor._id}`);
+      } else if (foundGenre) {
+        router.push(`/genere/${foundGenre._id}`);
+      }
     } else {
-      router.push('/404');
+      alert('No matching results found.');
     }
 
+    // Clear search term and hide recent searches
     setSearchTerm('');
     setShowRecentSearches(false);
   };
@@ -104,7 +111,7 @@ export default function SearchBar() {
   const handleRecentSearchClick = (term) => {
     setSearchTerm(term);
     setShowRecentSearches(false);
-    handleSearch(term);
+    handleSearch();
   };
 
   return (
@@ -117,7 +124,7 @@ export default function SearchBar() {
         className="border p-2 rounded w-full"
       />
       <button
-        onClick={() => handleSearch()}
+        onClick={handleSearch}
         className="p-2 bg-blue-500 text-white rounded ml-2"
       >
         Search
