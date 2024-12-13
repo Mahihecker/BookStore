@@ -2,11 +2,11 @@ import Link from 'next/link';
 import styles from './Header.module.css';
 import SearchBar from '../SearchBar';
 import { useData } from '../DataContext';
-import { useAuth } from '../../context/AuthContext'; // Import AuthContext for user state
+import { useAuth } from '../../context/AuthContext';
 
 export default function Header() {
   const { books, authors, genres } = useData();
-  const { user, logout } = useAuth(); // Access user and logout from AuthContext
+  const { user, logout } = useAuth();
 
   return (
     <header className={styles.header}>
@@ -23,7 +23,7 @@ export default function Header() {
             <button className={styles.button}>Featured Books</button>
           </Link>
           <Link href="/Authors">
-            <button className={styles.button}>View all authors</button>
+            <button className={styles.button}>View All Authors</button>
           </Link>
           <Link href="/info">
             <button className={styles.button}>Info</button>

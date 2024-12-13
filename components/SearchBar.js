@@ -34,7 +34,6 @@ export default function SearchBar() {
     fetchSearchHistory();
   }, [user]);
 
-  // Handle search logic
   const handleSearch = async () => {
     if (!searchTerm.trim()) return; // Prevent empty searches
 
@@ -85,6 +84,12 @@ export default function SearchBar() {
     setShowRecentSearches(value.length > 0); // Show recent searches if input is not empty
   };
 
+  const handleHistoryClick = (term) => {
+    setSearchTerm(term); // Pre-fill the search bar with the history term
+    setShowRecentSearches(false); // Hide the recent searches dropdown
+    handleSearch(); // Perform the search
+  };
+
   return (
     <div className="relative mb-4">
       <input
@@ -108,7 +113,7 @@ export default function SearchBar() {
             <li
               key={index}
               className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => setSearchTerm(term)}
+              onClick={() => handleHistoryClick(term)}
             >
               {term}
             </li>
@@ -147,6 +152,22 @@ export default function SearchBar() {
           </ul>
         </div>
       ) : null}
+
+      {/* Display search history below the search bar */}
+      <div className="mt-4">
+        <h3 className="font-bold">Search History</h3>
+        <ul className="bg-white border rounded w-full p-2">
+          {recentSearches.map((term, index) => (
+            <li
+              key={index}
+              className="p-2 cursor-pointer hover:bg-gray-200"
+              onClick={() => handleHistoryClick(term)}
+            >
+              {term}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
