@@ -1,0 +1,13 @@
+.genreHeader {
+    padding: 20px;
+    text-align: center;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .genreTitle {
+    font-size: 2rem;
+    color: #333;
+  }
+  
