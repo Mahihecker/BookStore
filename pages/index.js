@@ -1,6 +1,6 @@
 import DarkModeToggle from '../components/DarkModeToggle';
 import FeaturedBooks from '../components/FeaturedBooks';
-import Header from '../components/Header';
+import Header from '../components/layout/Header';
 import { useAuth } from '../context/AuthContext';
 
 export default function HomePage({ books }) {

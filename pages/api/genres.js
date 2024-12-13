@@ -1,6 +1,6 @@
 // pages/api/genres/index.js
-import connectToDatabase from '../../../lib/db';
-import Genre from '../../../models/Genre';
+import connectToDatabase from '../../lib/db';
+import Genre from '../../models/Genre';
 
 export default async function handler(req, res) {
   await connectToDatabase();

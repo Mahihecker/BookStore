@@ -1,5 +1,5 @@
-import connectToDatabase from '../../../lib/db';
-import Book from '../../../models/Book';
+import connectToDatabase from '../../lib/db';
+import Book from '../../models/Book';
 
 export default async function handler(req, res) {
   await connectToDatabase();

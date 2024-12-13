@@ -2,7 +2,7 @@ import Link from 'next/link';
 import styles from './Header.module.css';
 import SearchBar from '../SearchBar';
 import { useData } from '../DataContext';
-import { useAuth } from '../context/AuthContext'; // Import AuthContext for user state
+import { useAuth } from '../../context/AuthContext'; // Import AuthContext for user state
 
 export default function Header() {
   const { books, authors, genres } = useData();

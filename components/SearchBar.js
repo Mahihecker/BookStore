@@ -9,7 +9,7 @@ export default function SearchBar() {
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [genres, setGenres] = useState([]);
-  const { user } = useAuth(); // Access logged-in user
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -20,6 +20,15 @@ export default function SearchBar() {
           fetch('/api/authors'),
           fetch('/api/genres'),
         ]);
+
+        if (!booksRes.ok || !authorsRes.ok || !genresRes.ok) {
+          console.error('Error in fetching data:', {
+            booksStatus: booksRes.status,
+            authorsStatus: authorsRes.status,
+            genresStatus: genresRes.status,
+          });
+          return;
+        }
 
         const [booksData, authorsData, genresData] = await Promise.all([
           booksRes.json(),
@@ -36,6 +45,8 @@ export default function SearchBar() {
           if (historyRes.ok) {
             const historyData = await historyRes.json();
             setRecentSearches(historyData.history || []);
+          } else {
+            console.error('Failed to fetch search history:', historyRes.status);
           }
         }
       } catch (error) {
@@ -57,13 +68,16 @@ export default function SearchBar() {
 
     if (user) {
       try {
-        await fetch('/api/user/history', {
+        const res = await fetch('/api/user/history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id, searchTerm: term }),
         });
+        if (!res.ok) {
+          console.error('Failed to save search history:', res.status);
+        }
       } catch (error) {
-        console.error('Error adding search history:', error);
+        console.error('Error saving search history:', error);
       }
     }
 
