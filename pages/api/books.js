@@ -1,9 +1,22 @@
-import path from "path"
-import fs from "fs"
-export default function handler(req, res) {
-    const p = path.join(process.cwd(),"books.json")
-    const data = fs.readFileSync(p)
-    const arr = JSON.parse(data)
-    const featuredBooks =arr.books.filter(book => book.featured === true);
-    return res.status(200).json({ featuredBooks })
+import connectToDatabase from '../../../lib/db';
+import Book from '../../../models/Book';
+
+export default async function handler(req, res) {
+  await connectToDatabase();
+
+  if (req.method === 'GET') {
+    try {
+      // Fetch all books
+      const books = await Book.find({});
+
+      // Filter featured books
+      const featuredBooks = books.filter((book) => book.featured === true);
+
+      res.status(200).json({ featuredBooks });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch books', error });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
 }

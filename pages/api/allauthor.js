@@ -1,23 +1,18 @@
-import path from "path";
-import fs from "fs";
+// pages/api/authors/index.js
+import connectToDatabase from '../../../lib/db';
+import Author from '../../../models/Author';
 
-export default function handler(req, res) {
-    const filePath = path.join(process.cwd(), "books.json");
+export default async function handler(req, res) {
+  await connectToDatabase();
 
+  if (req.method === 'GET') {
     try {
-        const data = fs.readFileSync(filePath, "utf8");
-        const parsedData = JSON.parse(data);
-        if (parsedData && parsedData.books) {
-            const bookAuthorIds = parsedData.books.map((book) => ({
-                id: book.id,
-                authorId: book.authorId
-            }));
-            return res.status(200).json({ bookAuthorIds });
-        } else {
-            return res.status(404).json({ message: "Books data not found" });
-        }
+      const authors = await Author.find({});
+      res.status(200).json(authors);
     } catch (error) {
-        console.error("Error reading books data:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+      res.status(500).json({ message: 'Failed to fetch authors', error });
     }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
 }

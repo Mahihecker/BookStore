@@ -1,16 +1,18 @@
-import path from "path";
-import fs from "fs";
+// pages/api/genres/index.js
+import connectToDatabase from '../../../lib/db';
+import Genre from '../../../models/Genre';
 
-export default function handler(req, res) {
-  const filePath = path.join(process.cwd(), "books.json");
+export default async function handler(req, res) {
+  await connectToDatabase();
 
-  try {
-    const f=fs.readFileSync(filePath, "utf8");
-    const data = JSON.parse(f);
-    const genre = data.genres;
-    res.status(200).json({ genre });
-  } catch (error) {
-    console.error("Error reading genres data:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+  if (req.method === 'GET') {
+    try {
+      const genres = await Genre.find({});
+      res.status(200).json(genres);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch genres', error });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
   }
 }
