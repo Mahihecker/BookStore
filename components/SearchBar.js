@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,43 +15,18 @@ export default function SearchBar() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return; // Only fetch recent searches if user is logged in
+
       try {
-        const [booksRes, authorsRes, genresRes] = await Promise.all([
-          fetch('/api/book'),
-          fetch('/api/author'),
-          fetch('/api/genre'),
-        ]);
-
-        if (!booksRes.ok || !authorsRes.ok || !genresRes.ok) {
-          console.error('Error fetching data:', {
-            booksStatus: booksRes.status,
-            authorsStatus: authorsRes.status,
-            genresStatus: genresRes.status,
-          });
-          return;
-        }
-
-        const [booksData, authorsData, genresData] = await Promise.all([
-          booksRes.json(),
-          authorsRes.json(),
-          genresRes.json(),
-        ]);
-
-        setBooks(booksData);
-        setAuthors(authorsData);
-        setGenres(genresData);
-
-        if (user) {
-          const historyRes = await fetch(`/api/user/history?userId=${user._id}`);
-          if (historyRes.ok) {
-            const historyData = await historyRes.json();
-            setRecentSearches(historyData.history || []);
-          } else {
-            console.error('Failed to fetch search history:', historyRes.status);
-          }
+        const historyRes = await fetch(`/api/user/history?userId=${user._id}`);
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          setRecentSearches(historyData.history || []);
+        } else {
+          console.error('Failed to fetch search history:', historyRes.status);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching search history:', error);
       }
     };
 
@@ -60,41 +36,19 @@ export default function SearchBar() {
   const handleSearch = async () => {
     if (!searchTerm.trim()) return; // Prevent empty searches
 
-    const lowerCaseTerm = searchTerm.toLowerCase();
+    try {
+      const res = await fetch(`/api/search?searchTerm=${encodeURIComponent(searchTerm)}`);
+      const data = await res.json();
 
-    // Find matches (case insensitive)
-    const foundBook = books.find((book) => book.title?.toLowerCase() === lowerCaseTerm);
-    const foundAuthor = authors.find((author) => author.name?.toLowerCase() === lowerCaseTerm);
-    const foundGenre = genres.find((genre) => genre.name?.toLowerCase() === lowerCaseTerm);
+      setBooks(data.books);
+      setAuthors(data.authors);
+      setGenres(data.genres);
 
-    if (foundBook || foundAuthor || foundGenre) {
-      if (user) {
-        try {
-          const res = await fetch('/api/user/history', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user._id, searchTerm }),
-          });
-          if (!res.ok) {
-            console.error('Failed to save search history:', res.status);
-          } else {
-            setRecentSearches((prev) => [searchTerm, ...prev].slice(0, 10)); // Update local state
-          }
-        } catch (error) {
-          console.error('Error saving search history:', error);
-        }
+      if (data.books.length === 0 && data.authors.length === 0 && data.genres.length === 0) {
+        alert('No matching results found.');
       }
-
-      // Navigate to the appropriate page
-      if (foundBook) {
-        router.push(`/books/${foundBook._id}`);
-      } else if (foundAuthor) {
-        router.push(`/Authors/${foundAuthor._id}`);
-      } else if (foundGenre) {
-        router.push(`/genere/${foundGenre._id}`);
-      }
-    } else {
-      alert('No matching results found.');
+    } catch (error) {
+      console.error('Error searching:', error);
     }
 
     // Clear search term and hide recent searches
@@ -106,12 +60,6 @@ export default function SearchBar() {
     const value = e.target.value;
     setSearchTerm(value);
     setShowRecentSearches(value.length > 0);
-  };
-
-  const handleRecentSearchClick = (term) => {
-    setSearchTerm(term);
-    setShowRecentSearches(false);
-    handleSearch();
   };
 
   return (
@@ -136,13 +84,45 @@ export default function SearchBar() {
             <li
               key={index}
               className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => handleRecentSearchClick(term)}
+              onClick={() => setSearchTerm(term)}
             >
               {term}
             </li>
           ))}
         </ul>
       )}
+
+      {/* Display search results */}
+      {books.length > 0 || authors.length > 0 || genres.length > 0 ? (
+        <div className="mt-4">
+          <h3 className="font-bold">Books</h3>
+          <ul>
+            {books.map((book) => (
+              <li key={book.id}>
+                <Link href={`/books/${book.id}`}>{book.title}</Link>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="font-bold">Authors</h3>
+          <ul>
+            {authors.map((author) => (
+              <li key={author.id}>
+                <Link href={`/Authors/${author.id}`}>{author.name}</Link>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="font-bold">Genres</h3>
+          <ul>
+            {genres.map((genre) => (
+              <li key={genre.id}>
+                <Link href={`/genere/${genre.id}`}>{genre.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
