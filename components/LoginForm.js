@@ -1,8 +1,9 @@
+// components/LoginForm.js
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/LoginForm.module.css';
 
-export default function LoginForm() {
+const LoginForm = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,4 +35,6 @@ export default function LoginForm() {
       <button type="submit" className={styles.button}>Login</button>
     </form>
   );
-}
+};
+
+export default LoginForm;

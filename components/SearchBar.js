@@ -1,13 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-export default function SearchBar({ books = [], authors = [], genres = [] }) {
+export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [recentSearches, setRecentSearches] = useState([]);
   const [showRecentSearches, setShowRecentSearches] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [genres, setGenres] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
+    // Fetch collections from the database
+    const fetchData = async () => {
+      try {
+        const booksRes = await fetch('/api/books');
+        const authorsRes = await fetch('/api/authors');
+        const genresRes = await fetch('/api/genres');
+        
+        const booksData = await booksRes.json();
+        const authorsData = await authorsRes.json();
+        const genresData = await genresRes.json();
+
+        setBooks(booksData);
+        setAuthors(authorsData);
+        setGenres(genresData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
     const savedSearches = JSON.parse(localStorage.getItem('recentSearches')) || [];
     setRecentSearches(savedSearches);
   }, []);

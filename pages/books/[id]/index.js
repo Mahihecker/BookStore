@@ -1,7 +1,7 @@
 import DarkModeToggle from '../../../components/DarkModeToggle';
 import BookDetails from '../../../components/BookDetails';
 import { useRouter } from 'next/router';
-
+import ProtectedRoute from '../../../components/ProtectedRoute';
 export default function BookPage({ book}) {
   const router = useRouter();
   if (router.isFallback) {
@@ -9,10 +9,12 @@ export default function BookPage({ book}) {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <ProtectedRoute>
+      <div className="container mx-auto p-4">
        <BookDetails book={book} />
        <DarkModeToggle />
-    </div>
+     </div>
+    </ProtectedRoute>
   );
 }
 

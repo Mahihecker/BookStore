@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import DarkModeToggle from '../../../../../components/DarkModeToggle';
 import AuthorDetails from '../../../../../components/AuthorDetails';
+import ProtectedRoute from '../../components/ProtectedRoute';
 export default function AuthorPage({ author }) {
   const router = useRouter();
 
@@ -9,10 +10,12 @@ export default function AuthorPage({ author }) {
   }
 
   return (
-    <div className="container mx-auto p-4">
-       <AuthorDetails author={author} />
-      <DarkModeToggle />
-    </div>
+    <ProtectedRoute>
+      <div className="container mx-auto p-4">
+        <AuthorDetails author={author} />
+        <DarkModeToggle />
+      </div>
+    </ProtectedRoute>
   );
 }
 

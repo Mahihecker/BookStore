@@ -1,11 +1,21 @@
-import { createContext, useContext, useState } from 'react';
+// context/AuthContext.js
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import jwt from 'jsonwebtoken';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decoded = jwt.decode(token);
+      setUser({ id: decoded.id, email: decoded.email });
+    }
+  }, []);
 
   const login = async (email, password) => {
     try {
